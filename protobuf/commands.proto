@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package rpc;
+
+option go_package="./grpc";
+
+import "google/protobuf/struct.proto";
+
+message PermissionCommandRequest {
+  optional string subCommand = 1;
+  map<string, google.protobuf.Value> params = 2;
+}
+
+message PermissionCommandRespond {
+  optional int32 status = 1;
+  optional string msg = 2;
+}
