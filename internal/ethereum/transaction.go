@@ -1,1 +1,3 @@
 package ethereum
+
+func CallContract

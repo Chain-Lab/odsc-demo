@@ -45,6 +45,8 @@ func ListenEthereumContract() {
 		case err := <-sub.Err():
 			log.Fatal(err)
 		case vLog := <-logs:
+			// 监听到以太坊合约事件后注入的逻辑
+
 			fmt.Println(vLog)
 		}
 	}
