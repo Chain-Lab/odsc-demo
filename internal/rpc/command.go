@@ -15,9 +15,11 @@ func (cs *CommandService) CommandProxy(req CommandRequest, resp *CommandRespond)
 
 	switch command {
 	case "permission":
-		PermissionProxy(subCommand, &params, resp)
+		PermissionProxy(subCommand, (*Params)(&params), resp)
 	case "certificate":
-		CertificateProxy(subCommand, &params, resp)
+		CertificateProxy(subCommand, (*Params)(&params), resp)
+	case "wallet":
+		WalletProxy(subCommand, (*Params)(&params), resp)
 	}
 
 	return nil

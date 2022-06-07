@@ -13,7 +13,7 @@ func CertificateProxy(subCommand string, params *Params, resp *CommandRespond) {
 
 // subCertificatePublish 命令 "app certificate publish" 的执行入口
 func subCertificatePublish(params *Params, resp *CommandRespond) {
-	data := (*params)["data"]
+
 }
 
 // subCertificateVerify 命令 "app certificate verify" 的执行入口
@@ -21,6 +21,7 @@ func subCertificateVerify(params *Params, resp *CommandRespond) {
 
 }
 
+// subCertificateModify 命令 "app certificate modify" 的执行入口
 func subCertificateModify(params *Params, resp *CommandRespond) {
 
 }
