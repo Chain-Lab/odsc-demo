@@ -26,7 +26,7 @@ func UploadKeystoreJson(keystore string) {
 	req := &CommandRequest{
 		Command:    &command,
 		SubCommand: &subCommand,
-		Params: Params{
+		Params: map[string]*structpb.Value{
 			"keystore": &structpb.Value{Kind: &structpb.Value_StringValue{
 				StringValue: keystore,
 			}},
@@ -34,12 +34,10 @@ func UploadKeystoreJson(keystore string) {
 	}
 
 	reply, err := client.CommandProxy(context.Background(), req)
-	
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println(reply.GetStatus())
-
-	return nil
 }

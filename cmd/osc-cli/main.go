@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/decision2016/osc/internal/rpc"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/urfave/cli"
+	"io/ioutil"
 	"log"
 	"os"
 )
@@ -26,7 +28,7 @@ func main() {
 						},
 						cli.StringFlag{
 							Name: "out",
-						}
+						},
 					},
 					Action: walletCreate,
 				},
@@ -42,7 +44,7 @@ func main() {
 			},
 		},
 		{
-			Name:  "certificate",
+			Name:  "data",
 			Usage: "osc-cli certificate ...",
 			Subcommands: []cli.Command{
 				{
@@ -111,6 +113,20 @@ func walletCreate(c *cli.Context) (err error) {
 }
 
 func walletUpload(c *cli.Context) (err error) {
+	file_path := c.String("file-path")
+
+	if "" == file_path {
+		return
+	}
+
+	keystoreJson, err := ioutil.ReadFile(file_path)
+
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+
+	rpc.UploadKeystoreJson(keystoreJson)
 
 	return
 }

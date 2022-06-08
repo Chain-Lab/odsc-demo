@@ -1,9 +1,5 @@
 package rpc
 
-import "google.golang.org/protobuf/types/known/structpb"
-
-type Params map[string]*structpb.Value
-
 type CommandService struct {
 }
 
@@ -15,11 +11,11 @@ func (cs *CommandService) CommandProxy(req CommandRequest, resp *CommandRespond)
 
 	switch command {
 	case "permission":
-		PermissionProxy(subCommand, (*Params)(&params), resp)
+		PermissionProxy(subCommand, &params, resp)
 	case "certificate":
-		CertificateProxy(subCommand, (*Params)(&params), resp)
+		DataProxy(subCommand, &params, resp)
 	case "wallet":
-		WalletProxy(subCommand, (*Params)(&params), resp)
+		WalletProxy(subCommand, &params, resp)
 	}
 
 	return nil
