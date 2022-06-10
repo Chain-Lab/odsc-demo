@@ -23,14 +23,14 @@ func subWalletUpload(params *map[string]*structpb.Value, resp *CommandRespond) {
 	identityKeyBytes := sha256.Sum256([]byte(keystoreJson))
 	identityKey := hex.EncodeToString(identityKeyBytes[:])
 
-	dbutil, err := utils.DBInstance()
+	dbUtil, err := utils.DBInstance()
 
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	dbExists, err := dbutil.DBExists(context.Background(), "keystore")
+	dbExists, err := dbUtil.DBExists(context.Background(), "keystore")
 
 	if err != nil {
 		log.Fatal(err)
@@ -38,7 +38,7 @@ func subWalletUpload(params *map[string]*structpb.Value, resp *CommandRespond) {
 	}
 
 	if !dbExists {
-		err := dbutil.CreateDB(context.Background(), "keysotre")
+		err := dbUtil.CreateDB(context.Background(), "keysotre")
 
 		if err != nil {
 			log.Fatal(err)
@@ -46,19 +46,27 @@ func subWalletUpload(params *map[string]*structpb.Value, resp *CommandRespond) {
 		}
 	}
 
-	db := dbutil.DB("keystore")
+	db := dbUtil.DB("keystore")
 
-	doc := map[string]interface{} {
-		"_id": identityKey,
+	doc := map[string]interface{}{
+		"_id":      identityKey,
 		"keystore": keystoreJson,
 	}
 
 	rev, err := db.Put(context.TODO(), identityKey, doc)
+	var statusCode int32 = 0
 
 	if err != nil {
+		statusCode = -1
+		resp = &CommandRespond{
+			Status: &statusCode,
+			Msg:    &rev,
+		}
 		log.Fatal(err)
+	}
 
-		resp = &CommandRespond{}
-		resp.
+	resp = &CommandRespond{
+		Status: &statusCode,
+		Msg:    &rev,
 	}
 }

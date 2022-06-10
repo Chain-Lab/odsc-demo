@@ -88,3 +88,12 @@ func runPeerNode() (err error) {
 
 	return
 }
+
+func PutDataToNetwork(key string, value []byte) (err error) {
+	err = kademliaDHT.PutValue(context.Background(), key, value)
+	return
+}
+
+func GetDataFromNetwork(key string) (value []byte, err error) {
+	return kademliaDHT.GetValue(context.Background(), key)
+}

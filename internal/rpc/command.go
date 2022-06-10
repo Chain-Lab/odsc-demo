@@ -14,8 +14,6 @@ func (cs *CommandService) CommandProxy(req CommandRequest, resp *CommandRespond)
 		PermissionProxy(subCommand, &params, resp)
 	case "certificate":
 		DataProxy(subCommand, &params, resp)
-	case "wallet":
-		WalletProxy(subCommand, &params, resp)
 	}
 
 	return nil
