@@ -14,6 +14,8 @@ import (
 // ListenEthereumContract 监听以太坊合约的函数入口， 启一个goroutine来监听
 func ListenEthereumContract() {
 	cfg := utils.ConfigInstance()
+
+	// 从配置文件中读取ws地址和需要监听的合约地址
 	wssUrl := cfg.Section("contract").Key("ws").String()
 	address := cfg.Section("contract").Key("address").String()
 
@@ -31,6 +33,7 @@ func ListenEthereumContract() {
 
 	logs := make(chan types.Log)
 
+	// 使用配置文件中的地址来过滤日志信息
 	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
 
 	if err != nil {

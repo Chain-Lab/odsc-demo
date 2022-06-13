@@ -12,7 +12,7 @@ func (cs *CommandService) CommandProxy(req CommandRequest, resp *CommandRespond)
 	switch command {
 	case "permission":
 		PermissionProxy(subCommand, &params, resp)
-	case "certificate":
+	case "data":
 		DataProxy(subCommand, &params, resp)
 	}
 
