@@ -6,7 +6,7 @@ import (
 )
 
 func TestGetBootstrap(t *testing.T) {
-	bootstrap := ReadBootstrap()
+	genesis, _ := ReadGenesis()
 
-	log.Println(bootstrap)
+	log.Println(genesis.String() == "0")
 }

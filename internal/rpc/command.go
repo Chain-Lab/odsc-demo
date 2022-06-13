@@ -14,6 +14,8 @@ func (cs *CommandService) CommandProxy(req CommandRequest, resp *CommandRespond)
 		PermissionProxy(subCommand, &params, resp)
 	case "data":
 		DataProxy(subCommand, &params, resp)
+	case "genesis":
+		GenesisProxy(resp)
 	}
 
 	return nil

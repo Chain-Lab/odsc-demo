@@ -169,6 +169,33 @@ func ReadOwner() (owner string, err error) {
 	return
 }
 
+func ReadGenesis() (genesis *big.Int, err error) {
+	config := utils.ConfigInstance()
+	contractAddress := config.Section("contract").Key("address").String()
+	httpUrl := config.Section("contract").Key("http").String()
+
+	client, err := ethclient.Dial(httpUrl)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	address := common.HexToAddress(contractAddress)
+	instance, err := NewEthereum(address, client)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	genesis, err = instance.Genesis(nil)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return
+}
+
 func buildAuth(client *ethclient.Client, privateKey *ecdsa.PrivateKey) (auth *bind.TransactOpts, err error) {
 
 	publicKey := privateKey.Public()
