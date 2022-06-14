@@ -8,15 +8,20 @@ import (
 	"net/rpc"
 )
 
-func StartRPCService() (err error) {
+func StartRPCService() {
 	config := utils.ConfigInstance()
 	port, err := config.Section("rpc").Key("port").Int()
 
 	if err != nil {
+		log.Fatal(err)
 		return
 	}
 
-	rpc.RegisterName("CommandService", new(CommandService))
+	err = rpc.RegisterName("CommandService", new(CommandService))
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 
 	if err != nil {
@@ -32,6 +37,4 @@ func StartRPCService() (err error) {
 	}
 
 	rpc.ServeConn(conn)
-
-	return
 }

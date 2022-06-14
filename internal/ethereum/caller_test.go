@@ -10,3 +10,9 @@ func TestGetBootstrap(t *testing.T) {
 
 	log.Println(genesis.String() == "0")
 }
+
+func TestGetLatestBlock(t *testing.T) {
+	hash, _ := GetLatestBlockHash()
+
+	log.Println(hash)
+}

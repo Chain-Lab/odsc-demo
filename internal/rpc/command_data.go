@@ -10,6 +10,8 @@ func DataProxy(subCommand string, params *map[string]*structpb.Value, resp *Comm
 		subDataVerify(params, resp)
 	case "modify":
 		subDataModify(params, resp)
+	case "invoke":
+		subDataInvoke(params, resp)
 	}
 }
 
@@ -25,5 +27,10 @@ func subDataVerify(params *map[string]*structpb.Value, resp *CommandRespond) {
 
 // subDataModify 命令 "app data modify" 的执行入口
 func subDataModify(params *map[string]*structpb.Value, resp *CommandRespond) {
+
+}
+
+// subDataInvoke 命令 "app data invoke" 的执行入口
+func subDataInvoke(params *map[string]*structpb.Value, resp *CommandRespond) {
 
 }

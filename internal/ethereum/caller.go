@@ -233,3 +233,19 @@ func buildAuth(client *ethclient.Client, privateKey *ecdsa.PrivateKey) (auth *bi
 
 	return
 }
+
+func GetLatestBlockHash() (blockHash string, err error) {
+	config := utils.ConfigInstance()
+	httpUrl := config.Section("contract").Key("http").String()
+
+	client, err := ethclient.Dial(httpUrl)
+
+	header, err := client.HeaderByNumber(context.Background(), nil)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	blockHash = header.Hash().String()
+	return
+}
