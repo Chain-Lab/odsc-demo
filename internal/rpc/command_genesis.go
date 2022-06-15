@@ -24,7 +24,7 @@ func GenesisProxy(resp *CommandRespond) {
 	blockHash, err := ethereum.GetLatestBlockHash()
 	var ret int32 = 0
 	if err != nil {
-		respWrite(-1, "Get latest block hash error.", resp)
+		resp = respWrite(-1, "Get latest block hash error.")
 		return
 	}
 
@@ -42,7 +42,7 @@ func GenesisProxy(resp *CommandRespond) {
 	genesisJson, err := json.Marshal(genesisData)
 
 	if err != nil {
-		respWrite(-1, "Genesis data serialization failed.", resp)
+		resp = respWrite(-1, "Genesis data serialization failed.")
 		return
 	}
 
@@ -84,14 +84,14 @@ func GenesisProxy(resp *CommandRespond) {
 	dbUtil, err := utils.DBInstance()
 
 	if err != nil {
-		respWrite(-1, "Get database instance failed.", resp)
+		resp = respWrite(-1, "Get database instance failed.")
 		return
 	}
 
 	err = dbUtil.CreateDB(context.Background(), "data")
 
 	if err != nil {
-		respWrite(-1, "Create table failed", resp)
+		resp = respWrite(-1, "Create table failed")
 		log.Fatal(err)
 	}
 
@@ -99,16 +99,25 @@ func GenesisProxy(resp *CommandRespond) {
 
 	err = node.PutDataToNetwork(genesisData.Id, genesisJson)
 	if err != nil {
-		respWrite(-1, "Put data to P2P network failed.", resp)
+		resp = respWrite(-1, "Put data to P2P network failed.")
 		return
 	}
 
 	rev, err := db.Put(context.Background(), genesisData.Id, genesisData)
 	if err != nil {
-		respWrite(-1, "Write databse error.", resp)
+		resp = respWrite(-1, "Write databse error.")
 		log.Fatal(err)
 	}
 
-	respWrite(0, rev, resp)
+	dht, err := node.GetDHTInstance()
+
+	if err != nil {
+		resp = respWrite(-1, "Peer node error.")
+		return
+	}
+
+	dht.PutValue(context.Background(), genesisData.Id, genesisJson)
+
+	resp = respWrite(0, rev)
 	return
 }

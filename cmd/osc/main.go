@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/decision2016/osc/internal/ethereum"
+	"github.com/decision2016/osc/internal/node"
 	"github.com/decision2016/osc/internal/rpc"
 	"github.com/urfave/cli"
 	"log"
@@ -35,11 +36,12 @@ func startNode(c *cli.Context) (err error) {
 
 	go rpc.StartRPCService()
 	go ethereum.ListenEthereumContract()
+	_, err = node.GetDHTInstance()
+	if err != nil {
+		return err
+	}
 
-	go func() {
-		<-cs
-		os.Exit(1)
-	}()
+	<-cs
 
 	return
 }

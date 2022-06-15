@@ -3,38 +3,24 @@ package rpc
 import (
 	"fmt"
 	"github.com/decision2016/osc/internal/utils"
+	"google.golang.org/grpc"
 	"log"
 	"net"
-	"net/rpc"
 )
 
 func StartRPCService() {
 	config := utils.ConfigInstance()
 	port, err := config.Section("rpc").Key("port").Int()
 
+	grpcServer := grpc.NewServer()
+	RegisterCommandServiceServer(grpcServer, new(CommandService))
+
+	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
 
-	err = rpc.RegisterName("CommandService", new(CommandService))
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	log.Println("Start RPC service on port ", port)
 
-	if err != nil {
-		log.Fatal("Listen TCP error: ", err)
-		return
-	}
-
-	conn, err := listener.Accept()
-
-	if err != nil {
-		log.Fatal("Accept error: ", err)
-		return
-	}
-
-	rpc.ServeConn(conn)
+	grpcServer.Serve(listen)
 }

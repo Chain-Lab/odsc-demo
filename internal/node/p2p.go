@@ -6,7 +6,9 @@ import (
 	"github.com/decision2016/osc/internal/utils"
 	"github.com/libp2p/go-libp2p"
 	host2 "github.com/libp2p/go-libp2p-core/host"
+	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/multiformats/go-multiaddr"
 	"log"
 )
 
@@ -18,9 +20,9 @@ var (
 	kademliaDHT *dht.IpfsDHT = nil
 )
 
-// start 启动P2P节点， 仅运行一次作为DHT的初始化
+// Start 启动P2P节点， 仅运行一次作为DHT的初始化
 // 在后续需要进行P2P网络的操作的时候获取一个实例来进行操作
-func start() (err error) {
+func Start() (err error) {
 	runAsBootstrap, err := config.Section("node").Key("run_as_bootstrap").Bool()
 
 	if err != nil {
@@ -28,17 +30,16 @@ func start() (err error) {
 		return
 	}
 
-	if runAsBootstrap {
-		err := runBootstrap()
-		if err != nil {
-			log.Fatal("Start bootstrap service failed.")
-			return
-		}
-	} else {
+	err = runBootstrap()
+	if err != nil {
+		log.Fatal("Start bootstrap service failed: ", err)
+		return
+	}
+
+	if !runAsBootstrap {
 		err := runPeerNode()
 		if err != nil {
 			log.Fatal("Start peer node failed.")
-			return
 		}
 	}
 
@@ -54,7 +55,7 @@ func start() (err error) {
 
 func GetDHTInstance() (instance *dht.IpfsDHT, err error) {
 	if kademliaDHT == nil {
-		err := start()
+		err := Start()
 		if err != nil {
 			log.Fatal("DHT initialization failed.")
 			return nil, err
@@ -69,10 +70,11 @@ func runBootstrap() (err error) {
 	port, err := config.Section("node").Key("port").Int()
 
 	if err != nil {
+		log.Fatal(err)
 		return
 	}
 
-	listenAddr := fmt.Sprintf("ip4/0.0.0.0/tcp/%d", port)
+	listenAddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port)
 
 	host, err = libp2p.New(
 		libp2p.ListenAddrStrings(
@@ -85,13 +87,28 @@ func runBootstrap() (err error) {
 }
 
 func runPeerNode() (err error) {
+	config = utils.ConfigInstance()
+	bootstrap := config.Section("node").Key("bootstrap").String()
+
+	addr, err := multiaddr.NewMultiaddr(bootstrap)
+	if err != nil {
+		log.Fatal(err)
+	}
+	peer, err := peerstore.AddrInfoFromP2pAddr(addr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = host.Connect(context.Background(), *peer)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("Connect to P2P network.")
 
 	return
 }
 
 func PutDataToNetwork(key string, value []byte) (err error) {
-	err = kademliaDHT.PutValue(context.Background(), key, value)
-	return
+	return kademliaDHT.PutValue(context.Background(), key, value)
 }
 
 func GetDataFromNetwork(key string) (value []byte, err error) {

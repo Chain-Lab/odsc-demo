@@ -3,6 +3,7 @@ module github.com/decision2016/osc
 go 1.18
 
 require (
+	github.com/decision2016/go-crypto v0.0.0-20220614090524-5e078fba0278
 	github.com/ethereum/go-ethereum v1.10.18
 	github.com/go-kivik/couchdb/v4 v4.0.0-20220217152009-9380cf8517a0
 	github.com/go-kivik/kivik/v4 v4.0.0-20220330131300-9effce90869a
@@ -28,7 +29,6 @@ require (
 	github.com/coreos/go-systemd/v22 v22.1.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
-	github.com/decision2016/go-crypto v0.0.0-20220614075023-b450f5e71718 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
