@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func GenesisProxy(resp *CommandRespond) {
+func GenesisProxy() (resp *CommandRespond) {
 	// todo: 需要添加一个权限鉴别, 检查是否创建过创世数据以及存在权限
 
 	config := utils.ConfigInstance()
@@ -76,7 +76,7 @@ func GenesisProxy(resp *CommandRespond) {
 
 	// todo: 这里需要把bootstrap的信息通过配置文件获取
 	tx, err := ethereum.ContractInitial(signature, hex.EncodeToString(random),
-		"ip4/testnet.decision01.com/tcp/5678")
+		"/ip4/testnet.decision01.com/tcp/5678")
 
 	genesisData.CreatedTx = tx
 	genesisJson, err = json.Marshal(genesisData)
@@ -97,12 +97,6 @@ func GenesisProxy(resp *CommandRespond) {
 
 	db := dbUtil.DB("data")
 
-	err = node.PutDataToNetwork(genesisData.Id, genesisJson)
-	if err != nil {
-		resp = respWrite(-1, "Put data to P2P network failed.")
-		return
-	}
-
 	rev, err := db.Put(context.Background(), genesisData.Id, genesisData)
 	if err != nil {
 		resp = respWrite(-1, "Write databse error.")
@@ -110,6 +104,13 @@ func GenesisProxy(resp *CommandRespond) {
 	}
 
 	dht, err := node.GetDHTInstance()
+
+	err = node.PutDataToNetwork(genesisData.Id, genesisJson)
+	if err != nil {
+		resp = respWrite(-1, "Put data to P2P network failed.")
+		log.Fatal(err)
+		return
+	}
 
 	if err != nil {
 		resp = respWrite(-1, "Peer node error.")

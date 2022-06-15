@@ -21,7 +21,7 @@ func (cs *CommandService) CommandProxy(ctx context.Context, req *CommandRequest)
 	case "data":
 		DataProxy(subCommand, &params, resp)
 	case "genesis":
-		GenesisProxy(resp)
+		resp = GenesisProxy()
 	}
 
 	return
