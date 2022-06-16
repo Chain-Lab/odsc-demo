@@ -3,6 +3,7 @@ package rpc
 import (
 	"fmt"
 	"github.com/decision2016/osc/internal/utils"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -20,7 +21,7 @@ func StartRPCService() {
 		log.Fatal(err)
 	}
 
-	log.Println("Start RPC service on port ", port)
+	logrus.Info("Start RPC service on port ", port)
 
 	grpcServer.Serve(listen)
 }

@@ -4,6 +4,8 @@ import (
 	"github.com/decision2016/osc/internal/ethereum"
 	"github.com/decision2016/osc/internal/node"
 	"github.com/decision2016/osc/internal/rpc"
+	"github.com/decision2016/osc/internal/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"log"
 	"os"
@@ -34,9 +36,14 @@ func startNode(c *cli.Context) (err error) {
 	cs := make(chan os.Signal, 1)
 	signal.Notify(cs, os.Interrupt)
 
+	logrus.SetReportCaller(true)
+	logrus.SetFormatter(&utils.Formatter{})
+	logrus.SetLevel(logrus.TraceLevel)
+
 	go rpc.StartRPCService()
 	go ethereum.ListenEthereumContract()
-	_, err = node.GetDHTInstance()
+	go node.GetDHTInstance()
+
 	if err != nil {
 		return err
 	}

@@ -21,6 +21,16 @@ func GenesisProxy() (resp *CommandRespond) {
 	hexPrivateKey := config.Section("wallet").Key("private").String()
 	timestamp := time.Now().Unix()
 
+	chameleonSec := ecdcs.PrivateKey{}
+	err := chameleonSec.FromHexString(hexPrivateKey)
+	chameleonPub, err := chameleonSec.ExportPublicKey(elliptic.P256())
+
+	if err != nil {
+		resp = respWrite(-1, "Private key error.")
+
+		return
+	}
+
 	blockHash, err := ethereum.GetLatestBlockHash()
 	var ret int32 = 0
 	if err != nil {
@@ -37,26 +47,13 @@ func GenesisProxy() (resp *CommandRespond) {
 		Timestamp:      timestamp,
 		PermissionList: []string{},
 		BlockHash:      blockHash,
+		PublicKey:      chameleonPub.ToHexString(),
 	}
 
 	genesisJson, err := json.Marshal(genesisData)
 
 	if err != nil {
 		resp = respWrite(-1, "Genesis data serialization failed.")
-		return
-	}
-
-	chameleonSec := ecdcs.PrivateKey{}
-	err = chameleonSec.FromHexString(hexPrivateKey)
-
-	if err != nil {
-		ret = -1
-		message := "Private key error."
-		resp = &CommandRespond{
-			Status: &ret,
-			Msg:    &message,
-		}
-
 		return
 	}
 

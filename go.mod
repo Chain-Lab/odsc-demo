@@ -3,13 +3,16 @@ module github.com/decision2016/osc
 go 1.18
 
 require (
-	github.com/decision2016/go-crypto v0.0.0-20220614090524-5e078fba0278
+	github.com/decision2016/go-crypto v0.0.0-20220616080836-e415345c1081
 	github.com/ethereum/go-ethereum v1.10.18
 	github.com/go-kivik/couchdb/v4 v4.0.0-20220217152009-9380cf8517a0
 	github.com/go-kivik/kivik/v4 v4.0.0-20220330131300-9effce90869a
+	github.com/ipfs/go-cid v0.2.0
 	github.com/libp2p/go-libp2p v0.20.1
 	github.com/libp2p/go-libp2p-core v0.16.1
 	github.com/libp2p/go-libp2p-kad-dht v0.16.0
+	github.com/multiformats/go-multiaddr v0.5.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/urfave/cli v1.22.9
 	google.golang.org/grpc v1.40.0
 	google.golang.org/protobuf v1.27.1
@@ -49,7 +52,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
 	github.com/huin/goupnp v1.0.3 // indirect
-	github.com/ipfs/go-cid v0.2.0 // indirect
 	github.com/ipfs/go-datastore v0.5.1 // indirect
 	github.com/ipfs/go-ipfs-util v0.0.2 // indirect
 	github.com/ipfs/go-ipns v0.1.2 // indirect
@@ -92,7 +94,6 @@ require (
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/multiformats/go-base32 v0.0.4 // indirect
 	github.com/multiformats/go-base36 v0.1.0 // indirect
-	github.com/multiformats/go-multiaddr v0.5.0 // indirect
 	github.com/multiformats/go-multiaddr-dns v0.3.1 // indirect
 	github.com/multiformats/go-multiaddr-fmt v0.1.0 // indirect
 	github.com/multiformats/go-multibase v0.0.3 // indirect

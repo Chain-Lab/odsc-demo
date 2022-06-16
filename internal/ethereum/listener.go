@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/sirupsen/logrus"
 	"log"
 )
 
@@ -41,7 +42,7 @@ func ListenEthereumContract() {
 		return
 	}
 
-	log.Println("Start listen contract...")
+	logrus.Info("Start listen contract...")
 
 	for {
 		select {

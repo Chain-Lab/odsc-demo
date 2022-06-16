@@ -9,7 +9,8 @@ import (
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/multiformats/go-multiaddr"
-	"log"
+	"github.com/sirupsen/logrus"
+	"sync"
 )
 
 var config = utils.ConfigInstance()
@@ -20,47 +21,59 @@ var (
 	kademliaDHT *dht.IpfsDHT = nil
 )
 
+var p2pOnce sync.Once
+
 // Start 启动P2P节点， 仅运行一次作为DHT的初始化
 // 在后续需要进行P2P网络的操作的时候获取一个实例来进行操作
 func Start() (err error) {
 	runAsBootstrap, err := config.Section("node").Key("run_as_bootstrap").Bool()
 
 	if err != nil {
-		log.Fatal("Get config params error.")
+		logrus.Fatal("Get config params error.")
 		return
 	}
 
 	err = runBootstrap()
 	if err != nil {
-		log.Fatal("Start bootstrap service failed: ", err)
+		logrus.Fatal("Start bootstrap service failed: ", err)
 		return
 	}
+
+	logrus.Info("Bootstrap node start.")
 
 	if !runAsBootstrap {
 		err := runPeerNode()
 		if err != nil {
-			log.Fatal("Start peer node failed.")
+			logrus.Fatal("Start peer node failed.")
 		}
 	}
 
-	kademliaDHT, err = dht.New(ctx, host)
+	kademliaDHT, err = dht.New(ctx, host, dht.Validator(ChameleonValidator{}), dht.ProtocolPrefix("/chameleon"))
 
 	if err != nil {
-		log.Fatal("Start kademliaDHT service failed.")
+		logrus.Info(err)
+		logrus.Fatal("Start kademliaDHT service failed.")
 		return
+	}
+
+	logrus.Info("Put test:test to dht.")
+
+	err = PutDataToNetwork("/ipfs/test", []byte("test"))
+	if err != nil {
+		logrus.Info(err)
 	}
 
 	return
 }
 
 func GetDHTInstance() (instance *dht.IpfsDHT, err error) {
-	if kademliaDHT == nil {
+	logrus.Trace("Start DHT initial.")
+	p2pOnce.Do(func() {
 		err := Start()
 		if err != nil {
-			log.Fatal("DHT initialization failed.")
-			return nil, err
+			logrus.Fatal("DHT initialization failed.")
 		}
-	}
+	})
 
 	return kademliaDHT, err
 }
@@ -70,7 +83,7 @@ func runBootstrap() (err error) {
 	port, err := config.Section("node").Key("port").Int()
 
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 		return
 	}
 
@@ -92,17 +105,17 @@ func runPeerNode() (err error) {
 
 	addr, err := multiaddr.NewMultiaddr(bootstrap)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	peer, err := peerstore.AddrInfoFromP2pAddr(addr)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	err = host.Connect(context.Background(), *peer)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
-	log.Println("Connect to P2P network.")
+	logrus.Info("Connect to P2P network.")
 
 	return
 }
