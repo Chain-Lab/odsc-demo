@@ -11,6 +11,7 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"sync"
+	"time"
 )
 
 var config = utils.ConfigInstance()
@@ -56,12 +57,12 @@ func Start() (err error) {
 		return
 	}
 
-	logrus.Info("Put test:test to dht.")
-
-	err = PutDataToNetwork("/ipfs/test", []byte("test"))
-	if err != nil {
-		logrus.Info(err)
-	}
+	go func() {
+		for {
+			logrus.Info(kademliaDHT.RoutingTable())
+			time.Sleep(10 * time.Second)
+		}
+	}()
 
 	return
 }
@@ -96,6 +97,9 @@ func runBootstrap() (err error) {
 		libp2p.DefaultTransports,
 	)
 
+	logrus.Info("Local node: ", host.Addrs())
+	logrus.Info("Node Id: ", host.ID())
+
 	return
 }
 
@@ -121,7 +125,7 @@ func runPeerNode() (err error) {
 }
 
 func PutDataToNetwork(key string, value []byte) (err error) {
-	return kademliaDHT.PutValue(context.Background(), key, value)
+	return kademliaDHT.PutValue(context.Background(), key, value, dht.Quorum(1))
 }
 
 func GetDataFromNetwork(key string) (value []byte, err error) {

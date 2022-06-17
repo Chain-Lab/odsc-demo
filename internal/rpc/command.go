@@ -19,7 +19,7 @@ func (cs *CommandService) CommandProxy(ctx context.Context, req *CommandRequest)
 	case "permission":
 		resp = PermissionProxy(subCommand, &params)
 	case "data":
-		DataProxy(subCommand, &params, resp)
+		resp = DataProxy(subCommand, &params)
 	case "genesis":
 		resp = GenesisProxy()
 	}

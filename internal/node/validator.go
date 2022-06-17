@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/decision2016/go-crypto/ecdcs"
 	"github.com/decision2016/osc/internal/utils"
+	"github.com/sirupsen/logrus"
 )
 
 type ChameleonValidator struct{}
@@ -17,9 +18,12 @@ func (v ChameleonValidator) Validate(key string, value []byte) (err error) {
 	genesisData := utils.GenesisData{}
 	isGenesisData := false
 	err = json.Unmarshal(value, &storageData)
+	logrus.Trace(err)
 
 	if err != nil {
+		logrus.Info("Decode as storage data failed.")
 		err = json.Unmarshal(value, &genesisData)
+		logrus.Info(err)
 
 		if err != nil {
 			return
@@ -31,7 +35,6 @@ func (v ChameleonValidator) Validate(key string, value []byte) (err error) {
 	copyGenesisData := genesisData
 	copyStorageData := storageData
 	var jsonData []byte
-	var signature string
 	var random string
 
 	var hexPublicKey string
@@ -46,6 +49,7 @@ func (v ChameleonValidator) Validate(key string, value []byte) (err error) {
 		copyStorageData.Random = ""
 		copyStorageData.Id = ""
 	}
+	logrus.Trace(genesisData.PublicKey)
 
 	chameleonPub := ecdcs.PublicKey{}
 	err = chameleonPub.FromHexString(hexPublicKey)
@@ -59,17 +63,18 @@ func (v ChameleonValidator) Validate(key string, value []byte) (err error) {
 		if err != nil {
 			return
 		}
-		signature, random = genesisData.Id, genesisData.Random
+		random = genesisData.Random
 
 	} else {
 		jsonData, err = json.Marshal(copyStorageData)
 		if err != nil {
 			return
 		}
-		signature, random = storageData.Id, storageData.Random
+		random = storageData.Random
 	}
 
-	result, err := chameleonPub.Verify(elliptic.P256(), jsonData, signature, random)
+	logrus.Info(chameleonPub.ToHexString())
+	result, err := chameleonPub.Verify(elliptic.P256(), jsonData, key, random)
 
 	if !result {
 		return errors.New("verify chameleon failed")
