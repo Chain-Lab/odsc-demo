@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/decision2016/osc/internal/rpc"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
-	"io/ioutil"
+	"google.golang.org/protobuf/types/known/structpb"
 	"log"
 	"os"
 )
@@ -32,35 +34,65 @@ func main() {
 					},
 					Action: walletCreate,
 				},
-				{
-					Name: "upload",
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name: "file-path",
-						},
-					},
-					Action: walletUpload,
-				},
+				//{
+				//	Name: "upload",
+				//	Flags: []cli.Flag{
+				//		cli.StringFlag{
+				//			Name: "file-path",
+				//		},
+				//	},
+				//	Action: walletUpload,
+				//},
 			},
 		},
 		{
 			Name:  "data",
-			Usage: "osc-cli certificate ...",
+			Usage: "osc-cli data ...",
 			Subcommands: []cli.Command{
 				{
-					Name: "publish",
+					Name: "create",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "data",
+						},
+					},
+					Action: dataCreate,
+				},
+				{
+					Name: "modify",
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name: "data",
 						},
 						cli.StringFlag{
-							Name: "secret",
-						},
-						cli.StringFlag{
-							Name: "eth_priv",
+							Name: "key",
 						},
 					},
-					Action: certificatePublish,
+					Action: dataModify,
+				},
+			},
+		},
+		{
+			Name:  "permission",
+			Usage: "osc-cli permission ...",
+			Subcommands: []cli.Command{
+				{
+					Name: "add",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "address",
+						},
+					},
+					Action: permissionAdd,
+				},
+				{
+					Name: "revoke",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "address",
+						},
+					},
+					Action: permissionRevoke,
 				},
 			},
 		},
@@ -72,13 +104,67 @@ func main() {
 	}
 }
 
-func certificatePublish(c *cli.Context) error {
-	//data := c.String("data")
-	//secret := c.String("secret")
-	//eth_priv := c.String("eth_priv")
+func dataCreate(c *cli.Context) error {
+	filePath := c.String("filepath")
+	data, err := os.ReadFile(filePath)
+
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	dataBase64String := base64.StdEncoding.EncodeToString(data)
+	params := map[string]*structpb.Value{
+		"data": {Kind: &structpb.Value_StringValue{StringValue: dataBase64String}},
+	}
+
+	rpc.CallLocalRPC("data", "create", &params)
 
 	return nil
+}
 
+func dataModify(c *cli.Context) error {
+	filePath := c.String("filepath")
+	key := c.String("key")
+
+	data, err := os.ReadFile(filePath)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dataBase64String := base64.StdEncoding.EncodeToString(data)
+	params := map[string]*structpb.Value{
+		"data": {Kind: &structpb.Value_StringValue{StringValue: dataBase64String}},
+		"key":  {Kind: &structpb.Value_StringValue{StringValue: key}},
+	}
+
+	rpc.CallLocalRPC("data", "modify", &params)
+
+	return nil
+}
+
+func permissionAdd(c *cli.Context) error {
+	address := c.String("address")
+
+	params := map[string]*structpb.Value{
+		"address": {Kind: &structpb.Value_StringValue{StringValue: address}},
+	}
+
+	rpc.CallLocalRPC("permission", "add", &params)
+
+	return nil
+}
+
+func permissionRevoke(c *cli.Context) error {
+	address := c.String("address")
+
+	params := map[string]*structpb.Value{
+		"address": {Kind: &structpb.Value_StringValue{StringValue: address}},
+	}
+
+	rpc.CallLocalRPC("permission", "revoke", &params)
+
+	return nil
 }
 
 func walletCreate(c *cli.Context) (err error) {
@@ -112,21 +198,21 @@ func walletCreate(c *cli.Context) (err error) {
 	return
 }
 
-func walletUpload(c *cli.Context) (err error) {
-	file_path := c.String("file-path")
-
-	if "" == file_path {
-		return
-	}
-
-	keystoreJson, err := ioutil.ReadFile(file_path)
-
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-
-	rpc.UploadKeystoreJson(keystoreJson)
-
-	return
-}
+//func walletUpload(c *cli.Context) (err error) {
+//	file_path := c.String("file-path")
+//
+//	if "" == file_path {
+//		return
+//	}
+//
+//	keystoreJson, err := ioutil.ReadFile(file_path)
+//
+//	if err != nil {
+//		log.Fatal(err)
+//		return err
+//	}
+//
+//	rpc.UploadKeystoreJson(string(keystoreJson))
+//
+//	return
+//}

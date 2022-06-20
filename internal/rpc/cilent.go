@@ -2,13 +2,13 @@ package rpc
 
 import (
 	"context"
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/structpb"
 	"log"
 )
 
-func UploadKeystoreJson(keystore string) {
+func CallLocalRPC(command, subCommand string, params *map[string]*structpb.Value) {
 	conn, err := grpc.Dial("", grpc.WithInsecure())
 
 	if err != nil {
@@ -20,17 +20,10 @@ func UploadKeystoreJson(keystore string) {
 
 	client := NewCommandServiceClient(conn)
 
-	command := "wallet"
-	subCommand := "upload"
-
 	req := &CommandRequest{
 		Command:    &command,
 		SubCommand: &subCommand,
-		Params: map[string]*structpb.Value{
-			"keystore": &structpb.Value{Kind: &structpb.Value_StringValue{
-				StringValue: keystore,
-			}},
-		},
+		Params:     *params,
 	}
 
 	reply, err := client.CommandProxy(context.Background(), req)
@@ -39,5 +32,5 @@ func UploadKeystoreJson(keystore string) {
 		log.Fatal(err)
 	}
 
-	fmt.Println(reply.GetStatus())
+	logrus.Info(reply.GetStatus(), " ", reply.GetMsg())
 }

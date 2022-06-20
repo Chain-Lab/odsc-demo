@@ -31,7 +31,6 @@ func GenesisProxy() (resp *CommandRespond) {
 	}
 
 	blockHash, err := ethereum.GetLatestBlockHash()
-	var ret int32 = 0
 	if err != nil {
 		resp = respWrite(-1, "Get latest block hash error.")
 		return
