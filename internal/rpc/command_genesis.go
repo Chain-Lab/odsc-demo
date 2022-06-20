@@ -26,8 +26,7 @@ func GenesisProxy() (resp *CommandRespond) {
 	chameleonPub, err := chameleonSec.ExportPublicKey(elliptic.P256())
 
 	if err != nil {
-		resp = respWrite(-1, "Private key error.")
-
+		resp = respWrite(-1, "Parse private key error.")
 		return
 	}
 
@@ -59,12 +58,7 @@ func GenesisProxy() (resp *CommandRespond) {
 
 	random, signature, err := chameleonSec.Signature(elliptic.P256(), genesisJson)
 	if err != nil {
-		ret = -1
-		message := "Signature error."
-		resp = &CommandRespond{
-			Status: &ret,
-			Msg:    &message,
-		}
+		resp = respWrite(-1, "Chameleon signature failed.")
 		return
 	}
 
@@ -96,7 +90,7 @@ func GenesisProxy() (resp *CommandRespond) {
 
 	rev, err := db.Put(context.Background(), genesisData.Id, genesisData)
 	if err != nil {
-		resp = respWrite(-1, "Write databse error.")
+		resp = respWrite(-1, "Write database error.")
 		log.Fatal(err)
 	}
 
