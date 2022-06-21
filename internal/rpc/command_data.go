@@ -222,10 +222,22 @@ func subDataModify(params *map[string]*structpb.Value) (resp *CommandRespond) {
 	}
 
 	storageData.CreatedTx = tx
-
 	newRev, err := db.Put(context.TODO(), chameleonSignature, storageData)
+	storageDataJson, err := json.Marshal(storageData)
 
-	// todo: 把数据放到P2P网络中
+	if err != nil {
+		resp = respWrite(-1, "Storage data serialize failed.")
+		logrus.Error(resp)
+		return
+	}
+
+	err = node.PutDataToNetwork(storageData.Id, storageDataJson)
+
+	if err != nil {
+		resp = respWrite(-1, "Put data to P2P network failed.")
+		logrus.Error(err)
+		return
+	}
 
 	resp = respWrite(0, newRev)
 	return

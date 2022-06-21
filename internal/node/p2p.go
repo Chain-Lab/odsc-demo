@@ -8,6 +8,7 @@ import (
 	host2 "github.com/libp2p/go-libp2p-core/host"
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"sync"
@@ -17,9 +18,10 @@ import (
 var config = utils.ConfigInstance()
 
 var (
-	host        host2.Host
-	ctx                      = context.Background()
-	kademliaDHT *dht.IpfsDHT = nil
+	host             host2.Host
+	ctx                                        = context.Background()
+	kademliaDHT      *dht.IpfsDHT              = nil
+	routingDiscovery *routing.RoutingDiscovery = nil
 )
 
 var p2pOnce sync.Once
@@ -125,9 +127,19 @@ func runPeerNode() (err error) {
 }
 
 func PutDataToNetwork(key string, value []byte) (err error) {
-	return kademliaDHT.PutValue(context.Background(), key, value, dht.Quorum(1))
+	if routingDiscovery == nil {
+		routingDiscovery = routing.NewRoutingDiscovery(kademliaDHT)
+	}
+
+	_, err = routingDiscovery.Advertise(ctx, key)
+
+	if err != nil {
+		return
+	}
+
+	return kademliaDHT.PutValue(ctx, key, value)
 }
 
 func GetDataFromNetwork(key string) (value []byte, err error) {
-	return kademliaDHT.GetValue(context.Background(), key)
+	return kademliaDHT.GetValue(ctx, key)
 }

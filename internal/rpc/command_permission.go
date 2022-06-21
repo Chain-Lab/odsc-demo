@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"github.com/decision2016/go-crypto/ecdcs"
 	"github.com/decision2016/osc/internal/ethereum"
+	"github.com/decision2016/osc/internal/node"
 	"github.com/decision2016/osc/internal/utils"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -115,8 +116,21 @@ func subPermissionAdd(params *map[string]*structpb.Value) (resp *CommandRespond)
 
 	genesisData.CreatedTx = tx
 	rev, err := db.Put(context.TODO(), hexKey, genesisData)
+	storageDataJson, err := json.Marshal(genesisData)
 
-	// todo: 数据放到P2P网络中能够检查存取
+	if err != nil {
+		resp = respWrite(-1, "Storage data serialize failed.")
+		logrus.Error(resp)
+		return
+	}
+
+	err = node.PutDataToNetwork(genesisData.Id, storageDataJson)
+
+	if err != nil {
+		resp = respWrite(-1, "Put data to P2P network failed.")
+		logrus.Error(err)
+		return
+	}
 
 	resp = respWrite(0, rev)
 	return
@@ -213,10 +227,22 @@ func subPermissionRevoke(params *map[string]*structpb.Value) (resp *CommandRespo
 	}
 
 	genesisData.CreatedTx = tx
-
 	rev, err := db.Put(context.TODO(), hexKey, genesisData)
+	storageDataJson, err := json.Marshal(genesisData)
 
-	// todo: 数据放到P2P网络中能够检查存取
+	if err != nil {
+		resp = respWrite(-1, "Storage data serialize failed.")
+		logrus.Error(resp)
+		return
+	}
+
+	err = node.PutDataToNetwork(genesisData.Id, storageDataJson)
+
+	if err != nil {
+		resp = respWrite(-1, "Put data to P2P network failed.")
+		logrus.Error(err)
+		return
+	}
 
 	resp = respWrite(0, rev)
 	return
