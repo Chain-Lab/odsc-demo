@@ -119,7 +119,7 @@ func parseAndSaveData(data []byte, key, random string) (err error) {
 	logrus.Trace(storageData.Data)
 	logrus.Trace(storageData.Id)
 
-	if storageData.Data == nil {
+	if err != nil || storageData.Data == nil {
 		isGenesis = true
 		err = json.Unmarshal(data, &genesisData)
 
