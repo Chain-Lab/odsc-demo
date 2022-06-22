@@ -97,7 +97,7 @@ func subPermissionAdd(params *map[string]*structpb.Value) (resp *CommandRespond)
 	newData, err := json.Marshal(genesisData)
 
 	if err != nil {
-		resp = respWrite(-1, "Phrase data to json failed.")
+		resp = respWrite(-1, "Parse data to json failed.")
 		logrus.Error(err)
 		return
 	}
@@ -209,7 +209,7 @@ func subPermissionRevoke(params *map[string]*structpb.Value) (resp *CommandRespo
 	newData, err := json.Marshal(genesisData)
 
 	if err != nil {
-		resp = respWrite(-1, "Phrase data to json failed.")
+		resp = respWrite(-1, "Parse data to json failed.")
 		logrus.Error(err)
 		return
 	}

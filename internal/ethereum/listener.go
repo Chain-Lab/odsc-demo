@@ -2,7 +2,9 @@ package ethereum
 
 import (
 	"context"
-	"fmt"
+	"encoding/hex"
+	"encoding/json"
+	"github.com/decision2016/osc/internal/node"
 	"github.com/decision2016/osc/internal/utils"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -44,6 +46,13 @@ func ListenEthereumContract() {
 
 	logrus.Info("Start listen contract...")
 
+	instance, err := NewEthereum(contractAddress, client)
+
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+
 	for {
 		select {
 		case err := <-sub.Err():
@@ -51,7 +60,105 @@ func ListenEthereumContract() {
 		case vLog := <-logs:
 			// 监听到以太坊合约事件后注入的逻辑
 
-			fmt.Println(vLog)
+			created, err := instance.ParseDataCreated(vLog)
+
+			if err == nil {
+				key := created.Key
+				hexKey := hex.EncodeToString(key.Bytes())
+				value, err := node.GetDataFromNetwork(hexKey)
+				if err != nil {
+					logrus.Error(err)
+					continue
+				}
+				random := created.Random
+				err = parseAndSaveData(value, hexKey, random)
+				if err != nil {
+					logrus.Error(err)
+				}
+				continue
+			}
+
+			modified, err := instance.ParseDataModified(vLog)
+			if err == nil {
+				key := modified.Key
+				hexKey := hex.EncodeToString(key.Bytes())
+				value, err := node.GetDataFromNetwork(hexKey)
+				if err != nil {
+					logrus.Error(err)
+					continue
+				}
+				random := modified.Random
+				err = parseAndSaveData(value, hexKey, random)
+				if err != nil {
+					logrus.Error(err)
+				}
+				continue
+			}
+
+			revoked, err := instance.ParseDataRevoked(vLog)
+			if err == nil {
+				logrus.Trace(revoked.Key)
+				continue
+			}
 		}
 	}
+}
+
+func parseAndSaveData(data []byte, key, random string) (err error) {
+	var genesisData, dbGenesisData utils.GenesisData
+	var storageData, dbStorageData utils.StorageData
+	isGenesis := false
+
+	err = json.Unmarshal(data, &storageData)
+
+	if err != nil {
+		isGenesis = true
+		err := json.Unmarshal(data, &genesisData)
+
+		if err != nil {
+			return
+		}
+	}
+
+	dbUtil, err := utils.DBInstance()
+
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+
+	db := dbUtil.DB("data")
+
+	if isGenesis {
+		row := db.Get(context.TODO(), key)
+		err := row.ScanDoc(&dbGenesisData)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+
+		if dbGenesisData.Id == "" || dbGenesisData.Version < genesisData.Version {
+			_, err := db.Put(context.TODO(), key, genesisData)
+			if err != nil {
+				logrus.Error(err)
+				return err
+			}
+		}
+	} else {
+		row := db.Get(context.TODO(), key)
+		err := row.ScanDoc(&dbStorageData)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+
+		if dbStorageData.Id == "" || dbStorageData.Version < genesisData.Version {
+			_, err := db.Put(context.TODO(), key, storageData)
+			if err != nil {
+				logrus.Error(err)
+				return err
+			}
+		}
+	}
+	return
 }

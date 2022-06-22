@@ -6,11 +6,13 @@ import (
 	"github.com/decision2016/osc/internal/utils"
 	"github.com/libp2p/go-libp2p"
 	host2 "github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/network"
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
+	"log"
 	"sync"
 	"time"
 )
@@ -51,7 +53,16 @@ func Start() (err error) {
 		}
 	}
 
-	kademliaDHT, err = dht.New(ctx, host, dht.Validator(ChameleonValidator{}), dht.ProtocolPrefix("/chameleon"))
+	if runAsBootstrap {
+		kademliaDHT, err = dht.New(ctx, host,
+			dht.Validator(ChameleonValidator{}),
+			dht.ProtocolPrefix("/chameleon"),
+			dht.Mode(dht.ModeServer))
+	} else {
+		kademliaDHT, err = dht.New(ctx, host,
+			dht.Validator(ChameleonValidator{}),
+			dht.ProtocolPrefix("/chameleon"))
+	}
 
 	if err != nil {
 		logrus.Info(err)
@@ -59,12 +70,13 @@ func Start() (err error) {
 		return
 	}
 
-	go func() {
-		for {
-			logrus.Info(kademliaDHT.RoutingTable())
-			time.Sleep(10 * time.Second)
-		}
-	}()
+	err = kademliaDHT.Bootstrap(ctx)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	go discover(ctx, host)
 
 	return
 }
@@ -126,20 +138,55 @@ func runPeerNode() (err error) {
 	return
 }
 
+// PutDataToNetwork 将数据存放到P2P网络中
+// @key: key-value数据的键，通常使用变色龙哈希结果
+// @value: key-value数据的值
 func PutDataToNetwork(key string, value []byte) (err error) {
-	if routingDiscovery == nil {
-		routingDiscovery = routing.NewRoutingDiscovery(kademliaDHT)
-	}
-
-	_, err = routingDiscovery.Advertise(ctx, key)
-
-	if err != nil {
-		return
-	}
-
+	// 将数据放入到P2P网络上
 	return kademliaDHT.PutValue(ctx, key, value)
 }
 
 func GetDataFromNetwork(key string) (value []byte, err error) {
 	return kademliaDHT.GetValue(ctx, key)
+}
+
+func discover(ctx context.Context, h host2.Host) (err error) {
+	if routingDiscovery == nil {
+		routingDiscovery = routing.NewRoutingDiscovery(kademliaDHT)
+	}
+
+	// 调用方法加载路由表， 发现网络中的其他节点
+	_, err = routingDiscovery.Advertise(ctx, "test111")
+	logrus.Info("Get routing discovery instance...")
+
+	ticker := time.NewTicker(time.Second * 10)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			logrus.Info("Context done.")
+			return
+		case <-ticker.C:
+			peers, err := routingDiscovery.FindPeers(ctx, "test111")
+			if err != nil {
+				logrus.Fatal(err)
+			}
+
+			for p := range peers {
+				// logrus.Info(p.String())
+				if p.ID == h.ID() {
+					continue
+				}
+				if h.Network().Connectedness(p.ID) != network.Connected {
+					logrus.Info("Connect to node ", p.ID)
+					_, err = h.Network().DialPeer(ctx, p.ID)
+					if err != nil {
+						logrus.Error(err)
+						continue
+					}
+				}
+			}
+		}
+	}
 }
