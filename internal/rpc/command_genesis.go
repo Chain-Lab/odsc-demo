@@ -9,6 +9,7 @@ import (
 	"github.com/decision2016/osc/internal/ethereum"
 	"github.com/decision2016/osc/internal/node"
 	"github.com/decision2016/osc/internal/utils"
+	"github.com/sirupsen/logrus"
 	"log"
 	"time"
 )
@@ -43,7 +44,7 @@ func GenesisProxy() (resp *CommandRespond) {
 		Version:        0,
 		Operator:       localAddress,
 		Timestamp:      timestamp,
-		PermissionList: []string{},
+		PermissionList: []string{localAddress},
 		BlockHash:      blockHash,
 		PublicKey:      chameleonPub.ToHexString(),
 	}
@@ -78,11 +79,20 @@ func GenesisProxy() (resp *CommandRespond) {
 		return
 	}
 
-	err = dbUtil.CreateDB(context.Background(), "data")
+	dbExists, err := dbUtil.DBExists(context.Background(), "data")
 
 	if err != nil {
-		resp = respWrite(-1, "Create table failed")
-		log.Fatal(err)
+		logrus.Fatal(err)
+		return
+	}
+
+	if !dbExists {
+		err = dbUtil.CreateDB(context.Background(), "data")
+
+		if err != nil {
+			resp = respWrite(-1, "Create table failed")
+			log.Fatal(err)
+		}
 	}
 
 	db := dbUtil.DB("data")
@@ -93,21 +103,12 @@ func GenesisProxy() (resp *CommandRespond) {
 		log.Fatal(err)
 	}
 
-	dht, err := node.GetDHTInstance()
-
-	err = node.PutDataToNetwork(genesisData.Id, genesisJson)
-	if err != nil {
-		resp = respWrite(-1, "Put data to P2P network failed.")
-		log.Fatal(err)
-		return
-	}
-
-	if err != nil {
-		resp = respWrite(-1, "Peer node error.")
-		return
-	}
-
-	dht.PutValue(context.Background(), genesisData.Id, genesisJson)
+	_ = node.PutDataToNetwork(genesisData.Id, genesisJson)
+	//if err != nil {
+	//	resp = respWrite(-1, "Put data to P2P network failed.")
+	//	logrus.Error(err)
+	//	return
+	//}
 
 	resp = respWrite(0, rev)
 	return

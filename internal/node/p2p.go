@@ -159,7 +159,7 @@ func discover(ctx context.Context, h host2.Host) (err error) {
 	_, err = routingDiscovery.Advertise(ctx, "test111")
 	logrus.Info("Get routing discovery instance...")
 
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Second * 1)
 	defer ticker.Stop()
 
 	for {
@@ -174,7 +174,6 @@ func discover(ctx context.Context, h host2.Host) (err error) {
 			}
 
 			for p := range peers {
-				// logrus.Info(p.String())
 				if p.ID == h.ID() {
 					continue
 				}

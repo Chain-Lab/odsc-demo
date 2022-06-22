@@ -63,13 +63,16 @@ func ListenEthereumContract() {
 			created, err := instance.ParseDataCreated(vLog)
 
 			if err == nil {
+				logrus.Info("Listening data created event.")
 				key := created.Key
 				hexKey := hex.EncodeToString(key.Bytes())
-				value, err := node.GetDataFromNetwork(hexKey)
-				if err != nil {
-					logrus.Error(err)
-					continue
-				}
+				value, _ := node.GetDataFromNetwork(hexKey)
+				logrus.Trace("Get value from P2P network: ", value)
+				logrus.Trace("Chameleon data key: ", hexKey)
+				//if err != nil {
+				//	logrus.Error(err)
+				//	continue
+				//}
 				random := created.Random
 				err = parseAndSaveData(value, hexKey, random)
 				if err != nil {
@@ -80,13 +83,15 @@ func ListenEthereumContract() {
 
 			modified, err := instance.ParseDataModified(vLog)
 			if err == nil {
+				logrus.Info("Listening data modify event.")
 				key := modified.Key
 				hexKey := hex.EncodeToString(key.Bytes())
-				value, err := node.GetDataFromNetwork(hexKey)
-				if err != nil {
-					logrus.Error(err)
-					continue
-				}
+				value, _ := node.GetDataFromNetwork(hexKey)
+				logrus.Trace("Get value from P2P network: ", string(value))
+				//if err != nil {
+				//	logrus.Error(err)
+				//	continue
+				//}
 				random := modified.Random
 				err = parseAndSaveData(value, hexKey, random)
 				if err != nil {
@@ -105,19 +110,24 @@ func ListenEthereumContract() {
 }
 
 func parseAndSaveData(data []byte, key, random string) (err error) {
+	logrus.Trace("Start save data to database.")
 	var genesisData, dbGenesisData utils.GenesisData
 	var storageData, dbStorageData utils.StorageData
 	isGenesis := false
 
 	err = json.Unmarshal(data, &storageData)
+	logrus.Trace(storageData.Data)
+	logrus.Trace(storageData.Id)
 
-	if err != nil {
+	if storageData.Data == nil {
 		isGenesis = true
-		err := json.Unmarshal(data, &genesisData)
+		err = json.Unmarshal(data, &genesisData)
 
 		if err != nil {
+			logrus.Error(err)
 			return
 		}
+		logrus.Info("Data type is genesis data.")
 	}
 
 	dbUtil, err := utils.DBInstance()
@@ -127,6 +137,23 @@ func parseAndSaveData(data []byte, key, random string) (err error) {
 		return
 	}
 
+	dbExists, err := dbUtil.DBExists(context.Background(), "data")
+
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
+	if !dbExists {
+		err = dbUtil.CreateDB(context.Background(), "data")
+		logrus.Trace("Db not exists. Create new db.")
+
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+	}
+
 	db := dbUtil.DB("data")
 
 	if isGenesis {
@@ -134,10 +161,9 @@ func parseAndSaveData(data []byte, key, random string) (err error) {
 		err := row.ScanDoc(&dbGenesisData)
 		if err != nil {
 			logrus.Error(err)
-			return err
 		}
 
-		if dbGenesisData.Id == "" || dbGenesisData.Version < genesisData.Version {
+		if err != nil || dbGenesisData.Version < genesisData.Version {
 			_, err := db.Put(context.TODO(), key, genesisData)
 			if err != nil {
 				logrus.Error(err)
@@ -152,7 +178,7 @@ func parseAndSaveData(data []byte, key, random string) (err error) {
 			return err
 		}
 
-		if dbStorageData.Id == "" || dbStorageData.Version < genesisData.Version {
+		if err != nil || dbStorageData.Version < genesisData.Version {
 			_, err := db.Put(context.TODO(), key, storageData)
 			if err != nil {
 				logrus.Error(err)
@@ -160,5 +186,7 @@ func parseAndSaveData(data []byte, key, random string) (err error) {
 			}
 		}
 	}
+
+	logrus.Trace("Save data finished.")
 	return
 }

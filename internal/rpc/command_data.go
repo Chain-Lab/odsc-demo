@@ -12,6 +12,7 @@ import (
 	"github.com/decision2016/osc/internal/utils"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/structpb"
+	"log"
 	"time"
 )
 
@@ -25,6 +26,10 @@ func DataProxy(subCommand string, params *map[string]*structpb.Value) (resp *Com
 		resp = subDataModify(params)
 	case "revoke":
 		resp = subDataRevoke(params)
+	case "put":
+		resp = subDataPut(params)
+	case "get":
+		resp = subDataGet(params)
 	}
 	return
 }
@@ -110,6 +115,22 @@ func subDataPublish(params *map[string]*structpb.Value) (resp *CommandRespond) {
 		return
 	}
 
+	dbExists, err := dbUtil.DBExists(context.Background(), "data")
+
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
+	if !dbExists {
+		err = dbUtil.CreateDB(context.Background(), "data")
+
+		if err != nil {
+			resp = respWrite(-1, "Create table failed")
+			log.Fatal(err)
+		}
+	}
+
 	db := dbUtil.DB("data")
 	rev, err := db.Put(context.Background(), newData.Id, newDataJson)
 	if err != nil {
@@ -118,13 +139,13 @@ func subDataPublish(params *map[string]*structpb.Value) (resp *CommandRespond) {
 		return
 	}
 
-	err = node.PutDataToNetwork(newData.Id, newDataJson)
+	_ = node.PutDataToNetwork(newData.Id, newDataJson)
 
-	if err != nil {
-		resp = respWrite(-1, "Put data to P2P network failed.")
-		logrus.Error(err)
-		return
-	}
+	//if err != nil {
+	//	resp = respWrite(-1, "Put data to P2P network failed.")
+	//	logrus.Error(err)
+	//	return
+	//}
 
 	resp = respWrite(0, rev)
 	return
@@ -150,6 +171,22 @@ func subDataModify(params *map[string]*structpb.Value) (resp *CommandRespond) {
 	if err != nil {
 		resp = respWrite(-1, "Get database instance failed.")
 		return
+	}
+
+	dbExists, err := dbUtil.DBExists(context.Background(), "data")
+
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
+	if !dbExists {
+		err = dbUtil.CreateDB(context.Background(), "data")
+
+		if err != nil {
+			resp = respWrite(-1, "Create table failed")
+			log.Fatal(err)
+		}
 	}
 
 	db := dbUtil.DB("data")
@@ -231,13 +268,13 @@ func subDataModify(params *map[string]*structpb.Value) (resp *CommandRespond) {
 		return
 	}
 
-	err = node.PutDataToNetwork(storageData.Id, storageDataJson)
+	_ = node.PutDataToNetwork(storageData.Id, storageDataJson)
 
-	if err != nil {
-		resp = respWrite(-1, "Put data to P2P network failed.")
-		logrus.Error(err)
-		return
-	}
+	//if err != nil {
+	//	resp = respWrite(-1, "Put data to P2P network failed.")
+	//	logrus.Error(err)
+	//	return
+	//}
 
 	resp = respWrite(0, newRev)
 	return
@@ -245,5 +282,30 @@ func subDataModify(params *map[string]*structpb.Value) (resp *CommandRespond) {
 
 // subDataRevoke 命令 "app data invoke" 的执行入口
 func subDataRevoke(params *map[string]*structpb.Value) (resp *CommandRespond) {
+	return
+}
+
+func subDataPut(params *map[string]*structpb.Value) (resp *CommandRespond) {
+	data := (*params)["value"].GetStringValue()
+	key := (*params)["key"].GetStringValue()
+
+	err := node.PutDataToNetwork(key, []byte(data))
+
+	if err != nil {
+		logrus.Error(err)
+		resp = respWrite(-1, "error")
+		return
+	}
+
+	resp = respWrite(0, "success")
+	return
+
+}
+func subDataGet(params *map[string]*structpb.Value) (resp *CommandRespond) {
+	key := (*params)["key"].GetStringValue()
+	value, _ := node.GetDataFromNetwork(key)
+
+	resp = respWrite(0, string(value))
+
 	return
 }

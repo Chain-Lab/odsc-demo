@@ -11,9 +11,9 @@ var dbOnce sync.Once
 
 func DBInstance() (client *kivik.Client, err error) {
 	dbOnce.Do(func() {
-		//config := ConfigInstance()
-		//dbUrl := config.Section("couch").Key("address").String()
-		dbUrl := "http://admin:long2018nian!@42.193.15.205:5984/"
+		config := ConfigInstance()
+		dbUrl := config.Section("couch").Key("address").String()
+		//dbUrl := "http://admin:long2018nian!@42.193.15.205:5984/"
 
 		dbInstance, err = kivik.New("couch", dbUrl)
 

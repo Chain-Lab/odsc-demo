@@ -11,6 +11,7 @@ import (
 	"github.com/decision2016/osc/internal/utils"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/structpb"
+	"log"
 )
 
 func PermissionProxy(subCommand string, params *map[string]*structpb.Value) (resp *CommandRespond) {
@@ -53,6 +54,22 @@ func subPermissionAdd(params *map[string]*structpb.Value) (resp *CommandRespond)
 		resp = respWrite(-1, "Get database instance failed.")
 		logrus.Error(err)
 		return
+	}
+
+	dbExists, err := dbUtil.DBExists(context.Background(), "data")
+
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
+	if !dbExists {
+		err = dbUtil.CreateDB(context.Background(), "data")
+
+		if err != nil {
+			resp = respWrite(-1, "Create table failed")
+			log.Fatal(err)
+		}
 	}
 
 	db := dbUtil.DB("data")
@@ -124,13 +141,13 @@ func subPermissionAdd(params *map[string]*structpb.Value) (resp *CommandRespond)
 		return
 	}
 
-	err = node.PutDataToNetwork(genesisData.Id, storageDataJson)
+	_ = node.PutDataToNetwork(genesisData.Id, storageDataJson)
 
-	if err != nil {
-		resp = respWrite(-1, "Put data to P2P network failed.")
-		logrus.Error(err)
-		return
-	}
+	//if err != nil {
+	//	resp = respWrite(-1, "Put data to P2P network failed.")
+	//	logrus.Error(err)
+	//	return
+	//}
 
 	resp = respWrite(0, rev)
 	return
@@ -165,6 +182,22 @@ func subPermissionRevoke(params *map[string]*structpb.Value) (resp *CommandRespo
 		resp = respWrite(-1, "Get database instance failed.")
 		logrus.Error(err)
 		return
+	}
+
+	dbExists, err := dbUtil.DBExists(context.Background(), "data")
+
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
+	if !dbExists {
+		err = dbUtil.CreateDB(context.Background(), "data")
+
+		if err != nil {
+			resp = respWrite(-1, "Create table failed")
+			log.Fatal(err)
+		}
 	}
 
 	db := dbUtil.DB("data")
@@ -236,13 +269,13 @@ func subPermissionRevoke(params *map[string]*structpb.Value) (resp *CommandRespo
 		return
 	}
 
-	err = node.PutDataToNetwork(genesisData.Id, storageDataJson)
+	_ = node.PutDataToNetwork(genesisData.Id, storageDataJson)
 
-	if err != nil {
-		resp = respWrite(-1, "Put data to P2P network failed.")
-		logrus.Error(err)
-		return
-	}
+	//if err != nil {
+	//	resp = respWrite(-1, "Put data to P2P network failed.")
+	//	logrus.Error(err)
+	//	return
+	//}
 
 	resp = respWrite(0, rev)
 	return
