@@ -96,6 +96,11 @@ func main() {
 				},
 			},
 		},
+		{
+			Name: "test",
+			Usage: "osc-cli test",
+			Action: test,
+		},
 	}
 
 	err := app.Run(os.Args)
@@ -216,3 +221,17 @@ func walletCreate(c *cli.Context) (err error) {
 //
 //	return
 //}
+
+func test(c *cli.Context) (err error) {
+	filepath := "./files/6"
+	fileBytes, err := os.ReadFile(filepath)
+
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	fileBase64 := base64.StdEncoding.EncodeToString(fileBytes)
+
+	logrus.Info(fileBase64[0:60])
+	return
+}

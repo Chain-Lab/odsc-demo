@@ -187,8 +187,6 @@ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davidlazar/go-crypto v0.0.0-20170701192655-dcfb0a7ac018/go.mod h1:rQYf4tfk5sSwFsnDg3qYaBxSjsD9S8+59vW0dKUgme4=
 github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c h1:pFUpOrbxDR6AkioZ1ySsx5yxlDQZ8stG2b88gTPxgJU=
 github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c/go.mod h1:6UhI8N9EjYm1c2odKpFpAYeR8dsBeM7PtzQhRgxRr9U=
-github.com/decision2016/go-crypto v0.0.0-20220616080836-e415345c1081 h1:+pphs5B6ndZ1/CLa74drz6Mc/M5bok++SW2zV/S2+P4=
-github.com/decision2016/go-crypto v0.0.0-20220616080836-e415345c1081/go.mod h1:vVjiBLXc/EkyLLiRmSOMc57UapyqZ5cnWlFtqU5QzPM=
 github.com/decision2016/go-crypto v0.0.0-20220620063042-bde7da58ca2e h1:kDUrL6DvblxyPhrwmPh7kYTWylbhM6wckDx9kKGqT/c=
 github.com/decision2016/go-crypto v0.0.0-20220620063042-bde7da58ca2e/go.mod h1:vVjiBLXc/EkyLLiRmSOMc57UapyqZ5cnWlFtqU5QzPM=
 github.com/deckarep/golang-set v1.8.0 h1:sk9/l/KqpunDwP7pSjUg0keiOOLEnOBHzykLrsPppp4=
