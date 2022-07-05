@@ -18,7 +18,7 @@ func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 		b = &bytes.Buffer{}
 	}
 
-	timestamp := entry.Time.Format("2006-01-02 15:04:05")
+	timestamp := entry.Time.Format("2006-01-02 15:04:05.000000000")
 	var newLog string
 
 	if entry.HasCaller() {

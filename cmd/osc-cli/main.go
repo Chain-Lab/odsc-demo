@@ -97,8 +97,18 @@ func main() {
 			},
 		},
 		{
+			Name: "genesis",
+			Usage: "osc-cli genesis",
+			Action: genesis,
+		},
+		{
 			Name: "test",
 			Usage: "osc-cli test",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name: "id",
+				},
+			},
 			Action: test,
 		},
 	}
@@ -107,6 +117,13 @@ func main() {
 	if err != nil {
 		return
 	}
+}
+
+func genesis(c *cli.Context) error {
+	params := map[string]*structpb.Value{}
+	rpc.CallLocalRPC("genesis", "", &params)
+
+	return nil
 }
 
 func dataCreate(c *cli.Context) error {
@@ -223,7 +240,9 @@ func walletCreate(c *cli.Context) (err error) {
 //}
 
 func test(c *cli.Context) (err error) {
-	filepath := "./files/6"
+	id := c.String("id")
+
+	filepath := "./files/" + id
 	fileBytes, err := os.ReadFile(filepath)
 
 	if err != nil {
@@ -232,6 +251,12 @@ func test(c *cli.Context) (err error) {
 
 	fileBase64 := base64.StdEncoding.EncodeToString(fileBytes)
 
-	logrus.Info(fileBase64[0:60])
+	//params := map[string]*structpb.Value{
+	//	"data": {Kind: &structpb.Value_StringValue{StringValue: fileBase64}},
+	//}
+	//
+	//rpc.CallLocalRPC("data", "create", &params)
+	fmt.Println(fileBase64)
+
 	return
 }
