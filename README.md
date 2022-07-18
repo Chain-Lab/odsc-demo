@@ -1,3 +1,3 @@
-# OSC
+# ODSC
 
-Off-chain storage based Chameleon hash
+Off-chain Data Storage based Chameleon hash
