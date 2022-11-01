@@ -73,7 +73,7 @@ func ContractInitial(genesisKey []byte, random string, bootstrap string) (tx str
 	genesis := big.Int{}
 	genesis.SetBytes(genesisKey)
 
-	transaction, err := instance.Initialization(auth, &genesis, random, bootstrap)
+	transaction, err := instance.Initialization(auth, &genesis, []byte(random), bootstrap)
 
 	if err != nil {
 		log.Fatal(err)
@@ -113,7 +113,7 @@ func CallContract(funcType CallType, key []byte, random string) (tx string, err 
 	switch funcType {
 	case CREATE:
 		{
-			transaction, err := instance.Create(auth, &keyUint, random)
+			transaction, err := instance.Create(auth, &keyUint, []byte(random))
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -121,7 +121,7 @@ func CallContract(funcType CallType, key []byte, random string) (tx string, err 
 		}
 	case MODIFY:
 		{
-			transaction, err := instance.Modify(auth, &keyUint, random)
+			transaction, err := instance.Modify(auth, &keyUint, []byte(random))
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -136,35 +136,6 @@ func CallContract(funcType CallType, key []byte, random string) (tx string, err 
 			tx = transaction.Hash().String()
 		}
 	}
-
-	return
-}
-
-func ReadOwner() (owner string, err error) {
-	config := utils.ConfigInstance()
-	contractAddress := config.Section("contract").Key("address").String()
-	httpUrl := config.Section("contract").Key("http").String()
-
-	client, err := ethclient.Dial(httpUrl)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	address := common.HexToAddress(contractAddress)
-	instance, err := NewEthereum(address, client)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	addr, err := instance.Owner(nil)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	owner = addr.String()
 
 	return
 }

@@ -74,7 +74,7 @@ func ListenEthereumContract() {
 				//	continue
 				//}
 				random := created.Random
-				err = parseAndSaveData(value, hexKey, random)
+				err = parseAndSaveData(value, hexKey, string(random))
 				if err != nil {
 					logrus.Error(err)
 				}
@@ -93,7 +93,7 @@ func ListenEthereumContract() {
 				//	continue
 				//}
 				random := modified.Random
-				err = parseAndSaveData(value, hexKey, random)
+				err = parseAndSaveData(value, hexKey, string(random))
 				if err != nil {
 					logrus.Error(err)
 				}
@@ -175,7 +175,6 @@ func parseAndSaveData(data []byte, key, random string) (err error) {
 		err := row.ScanDoc(&dbStorageData)
 		if err != nil {
 			logrus.Error(err)
-			return err
 		}
 
 		if err != nil || dbStorageData.Version < genesisData.Version {

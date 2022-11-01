@@ -9,7 +9,7 @@ import (
 )
 
 func CallLocalRPC(command, subCommand string, params *map[string]*structpb.Value) {
-	conn, err := grpc.Dial("", grpc.WithInsecure())
+	conn, err := grpc.Dial("170.106.159.64:10234", grpc.WithInsecure())
 
 	if err != nil {
 		log.Fatal(err)

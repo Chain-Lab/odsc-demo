@@ -19,7 +19,7 @@ contract Odsc is Ownable {
         emit dataCreated(key, random);
     }
 
-    // modifiy data and emit dataModified event
+    // modify data and emit dataModified event
     function modify(uint256 key, string calldata random) public {
         emit dataModified(key, random);
     }
@@ -29,7 +29,7 @@ contract Odsc is Ownable {
         emit dataRevoked(key);
     }
 
-    // initilization, set genesis and bootstrap information
+    // initialization, set genesis and bootstrap information
     function initialization() public {}
 
     // read bootstrap node connection information

@@ -17,7 +17,10 @@ import (
 func GenesisProxy() (resp *CommandRespond) {
 	// todo: 需要添加一个权限鉴别, 检查是否创建过创世数据以及存在权限
 
+	// Read config from file
 	config := utils.ConfigInstance()
+
+	// Get local address and private key from config file
 	localAddress := config.Section("wallet").Key("address").String()
 	hexPrivateKey := config.Section("wallet").Key("private").String()
 	timestamp := time.Now().Unix()
@@ -36,6 +39,8 @@ func GenesisProxy() (resp *CommandRespond) {
 		resp = respWrite(-1, "Get latest block hash error.")
 		return
 	}
+	
+	logrus.Info("Start insert new data, block hash is %s", blockHash)
 
 	genesisData := utils.GenesisData{
 		Id:             "",
@@ -69,7 +74,14 @@ func GenesisProxy() (resp *CommandRespond) {
 	tx, err := ethereum.ContractInitial(signature, hex.EncodeToString(random),
 		"/ip4/testnet.decision01.com/tcp/5678")
 
+	if err != nil {
+		resp = respWrite(-1, "Call ethereum contract failed")
+		logrus.Error(err)
+		return
+	}
+
 	genesisData.CreatedTx = tx
+	logrus.Info("Write data index to tx#%s", tx)
 	genesisJson, err = json.Marshal(genesisData)
 
 	dbUtil, err := utils.DBInstance()

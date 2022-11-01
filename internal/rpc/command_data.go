@@ -62,6 +62,7 @@ func subDataPublish(params *map[string]*structpb.Value) (resp *CommandRespond) {
 		resp = respWrite(-1, "Get latest block hash error.")
 		return
 	}
+	logrus.Info("Start insert new data, block hash is %s", blockHash)
 
 	newData := utils.StorageData{
 		Id:        "",
@@ -99,6 +100,8 @@ func subDataPublish(params *map[string]*structpb.Value) (resp *CommandRespond) {
 		logrus.Error(err)
 		return
 	}
+
+	logrus.Info("Write data index to tx#%s", tx)
 
 	newData.CreatedTx = tx
 	newDataJson, err = json.Marshal(newData)
@@ -189,6 +192,15 @@ func subDataModify(params *map[string]*structpb.Value) (resp *CommandRespond) {
 		}
 	}
 
+	// log start block hash
+	blockHash, err := ethereum.GetLatestBlockHash()
+	if err != nil {
+		resp = respWrite(-1, "Get latest block hash error.")
+		return
+	}
+
+	logrus.Info("Start modify new data, block hash is %s", blockHash)
+
 	db := dbUtil.DB("data")
 	row := db.Get(context.TODO(), key)
 
@@ -257,6 +269,8 @@ func subDataModify(params *map[string]*structpb.Value) (resp *CommandRespond) {
 		logrus.Error(err)
 		return
 	}
+
+	logrus.Info("Modify data random to tx#%s", tx)
 
 	storageData.CreatedTx = tx
 	newRev, err := db.Put(context.TODO(), chameleonSignature, storageData)
