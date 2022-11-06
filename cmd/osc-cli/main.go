@@ -127,7 +127,7 @@ func genesis(c *cli.Context) error {
 }
 
 func dataCreate(c *cli.Context) error {
-	filePath := c.String("filepath")
+	filePath := c.String("data")
 	data, err := os.ReadFile(filePath)
 
 	if err != nil {
@@ -139,13 +139,13 @@ func dataCreate(c *cli.Context) error {
 		"data": {Kind: &structpb.Value_StringValue{StringValue: dataBase64String}},
 	}
 
-	rpc.CallLocalRPC("data", "create", &params)
+	rpc.CallLocalRPC("data", "publish", &params)
 
 	return nil
 }
 
 func dataModify(c *cli.Context) error {
-	filePath := c.String("filepath")
+	filePath := c.String("data")
 	key := c.String("key")
 
 	data, err := os.ReadFile(filePath)
